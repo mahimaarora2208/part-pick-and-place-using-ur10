@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>workcell_809e</name>
+  <version>0.0.0</version>
+  <description>Package to setup the workcell</description>
+
+  <maintainer email="zeidk@umd.edu">Zeid Kootbally</maintainer>
+
+  <license>Apache 2.0</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+
+  <exec_depend>rospy</exec_depend>
+  <!-- <exec_depend>logical_camera_809e</exec_depend>
+  <exec_depend>manipulation_809e</exec_depend> -->
+
+</package>

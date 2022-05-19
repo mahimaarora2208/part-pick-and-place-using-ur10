@@ -1,0 +1,37 @@
+
+<launch>
+  <arg name="model" default="waffle" />
+  <arg name="robot_name" default="waffle" />
+  <arg name="bot_x" default="-1.5" />
+  <arg name="bot_y" default="-1.5" />
+  <arg name="bot_yaw" default="1.57" />
+  
+  <!-- <arg name="rviz_config" default="$(find navigation_809e)/rviz/navigation.rviz" /> -->
+  <arg name="urdf_file" default="$(find xacro)/xacro '$(find turtlebot3_description)/urdf/turtlebot3_$(arg model).urdf.xacro' laser_visual:=false" />
+  <param name="robot_description" command="$(arg urdf_file)" />
+  <!-- Publish robot to tf tree -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+  <!-- Spawn robot in gazebo -->
+  <node name="spawn_turtlebot" pkg="gazebo_ros" type="spawn_model" 
+  args="-urdf
+  -param robot_description 
+  -x $(arg bot_x) 
+  -y $(arg bot_y) 
+  -Y $(arg bot_yaw) 
+  -model $(arg robot_name)" respawn="false" output="screen" />
+
+  <!-- start marker detector -->
+  <!-- <node name="aruco_detect" pkg="aruco_detect" type="aruco_detect">
+    <param name="image_transport" value="compressed" />
+    <param name="publish_images" value="true" />
+    <param name="fiducial_len" value="0.15" />
+    <param name="dictionary" value="0" />
+    <param name="do_pose_estimation" value="true" />
+    <param name="ignore_fiducials" value="" />
+    <param name="fiducial_len_override" value="" />
+    <remap from="/camera/compressed" to="/waffle/camera/rgb/image_raw/compressed" />
+    <remap from="/camera_info" to="/waffle/camera/rgb/camera_info" />
+  </node> -->
+
+  
+</launch>

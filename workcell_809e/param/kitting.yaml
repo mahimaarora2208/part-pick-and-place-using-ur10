@@ -1,0 +1,57 @@
+aruco_lookup_locations:
+  target_1: 
+    position_x: -4.18
+    position_y: 4.26
+    orientation_x: 0
+    orientation_y: 0
+    orientation_z: 0.17
+    orientation_w: 0.98
+  target_2: 
+    position_x: -0.832
+    position_y: 4.0236
+    orientation_x: 0
+    orientation_y: 0
+    orientation_z: 0.876
+    orientation_w: 0.482
+  target_3: 
+    position_x: -1.5
+    position_y: -1.5
+    orientation_x: 0
+    orientation_y: 0
+    orientation_z: 0.70
+    orientation_w: 0.70
+
+kits:
+  aruco_0: 
+    bin: bin3
+    part:
+      color: red
+      location: 
+        position_x: 0
+        position_y: 0
+        position_z: 0.77  
+  aruco_1: 
+    bin: bin2
+    part:
+      color: green
+      location: 
+        position_x: 0.15
+        position_y: -0.1
+        position_z: 0.77  
+  aruco_2: 
+    bin: bin4
+    part:
+      color: red
+      location: 
+        position_x: 0
+        position_y: 0
+        position_z: 0.77  
+  aruco_3: 
+    bin: bin4
+    part:
+      color: red
+      location: 
+        position_x: 0
+        position_y: 0
+        position_z: 0.77  
+  

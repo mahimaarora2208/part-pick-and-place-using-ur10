@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<launch>
+\
+    <!-- start marker detector -->
+    <node name="aruco_detect" pkg="aruco_detect" type="aruco_detect">
+        <param name="image_transport" value="compressed" />
+        <param name="publish_images" value="true" />
+        <param name="fiducial_len" value="0.15" />
+        <param name="dictionary" value="0" />
+        <param name="do_pose_estimation" value="true" />
+        <param name="ignore_fiducials" value="" />
+        <param name="fiducial_len_override" value="" />
+        <remap from="/camera/compressed" to="/waffle/camera/rgb/image_raw/compressed" />
+        <remap from="/camera_info" to="/waffle/camera/rgb/camera_info" />
+    </node>
+
+</launch>

@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="limited" default="false" />
+    <arg name="gui" default="true" />
+    <arg name="debug" default="false" />
+    <arg name="verbose" default="false" />
+    <arg name="gazebo_ros_output" default="screen" />
+    <arg name="world_path" default="$(find workcell_809e)/worlds/house2.world" />
+    <arg name="kitting_urdf_xacro" default="$(find robots_809e)/robot/kitting.urdf.xacro" />
+    <arg name="map_file" default="$(find workcell_809e)/maps/house/house.yaml" />
+    <arg name="load_moveit" default="true" />
+    <arg name="bot_x" default="-2.5" />
+    <arg name="bot_y" default="2" />
+    <arg name="bot_yaw" default="1.5" />
+    <arg name="robot_name" default="waffle" />
+
+
+  <!-- load content of kitting.yaml on the Parameter Server -->
+  <rosparam file="$(find workcell_809e)/param/kitting.yaml" command="load" />
+
+    <!-- startup simulated world -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(arg world_path)" />
+        <arg name="paused" value="true" />
+        <arg name="gui" value="$(arg gui)" />
+        <arg name="debug" value="$(arg debug)" />
+        <arg name="verbose" value="$(arg verbose)" />
+        <arg name="output" value="$(arg gazebo_ros_output)" />
+    </include>
+
+    <!-- <include file="$(find workcell_809e)/launch/turtlebot.launch">
+    </include> -->
+
+    <node pkg="tf2_ros" type="static_transform_publisher" name="connect_world_to_map" args="0 0 0 0 0 0 1 world map" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="connect_map_to_odom" args="0 0 0 0 0 0 1 map waffle_tf/odom" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="connect_bin1_to_world" args="0 0 0 0 0 0 1 world bin1" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="connect_bin2_to_world" args="-1 0 0 0 0 0 1 world bin2" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="connect_bin3_to_world" args="-2 0 0 0 0 0 1 world bin3" />
+    <node pkg="tf2_ros" type="static_transform_publisher" name="connect_bin4_to_world" args="-3 0 0 0 0 0 1 world bin4" />
+
+
+    <group ns="ariac/kitting">
+        <include file="$(find robots_809e)/robot/kitting.launch">
+            <arg name="kitting_urdf_xacro" value="$(arg kitting_urdf_xacro)" />
+            <arg name="limited" value="$(arg limited)" />
+        </include>
+        <include file="$(find kitting_moveit_config)/launch/move_group.launch" if="$(arg load_moveit)">
+            <arg name="load_robot_description" value="false" />
+        </include>
+        <include file="$(find kitting_moveit_config)/launch/moveit_rviz.launch">
+            <arg name="rviz_config" value="$(find kitting_moveit_config)/launch/moveit.rviz" />
+        </include>
+    </group>
+
+    <group ns="$(arg robot_name)">
+        <param name="tf_prefix" value="$(arg robot_name)_tf" />
+        <include file="$(find workcell_809e)/launch/turtlebot.launch">
+            <arg name="bot_x" value="$(arg bot_x)" />
+            <arg name="bot_y" value="$(arg bot_y)" />
+            <arg name="bot_yaw" value="$(arg bot_yaw)" />
+            <arg name="robot_name" value="$(arg robot_name)" />
+        </include>
+    </group>
+
+    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)">
+        <param name="frame_id" value="map" />
+    </node>
+
+    <!-- Start amcl -->
+    <include file="$(find navigation_809e)/launch/start_amcl.launch">
+        <arg name="robot_name" value="$(arg robot_name)" />
+        <arg name="initial_pose_x" value="$(arg bot_x)" />
+        <arg name="initial_pose_y" value="$(arg bot_y)" />
+        <arg name="initial_pose_a" value="$(arg bot_yaw)" />
+    </include>
+
+
+    <!-- start move base-->
+    <include file="$(find navigation_809e)/launch/start_movebase.launch">
+        <arg name="robot_name" value="$(arg robot_name)" />
+    </include>
+
+    <!-- launch rviz -->
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find navigation_809e)/rviz/navigation.rviz" />
+
+    <!-- start marker detector -->
+    <node name="aruco_detect" pkg="aruco_detect" type="aruco_detect">
+        <param name="image_transport" value="compressed" />
+        <param name="publish_images" value="true" />
+        <param name="fiducial_len" value="0.15" />
+        <param name="dictionary" value="0" />
+        <param name="do_pose_estimation" value="true" />
+        <param name="ignore_fiducials" value="" />
+        <param name="fiducial_len_override" value="" />
+        <remap from="/camera/compressed" to="/waffle/camera/rgb/image_raw/compressed" />
+        <remap from="/camera_info" to="/waffle/camera/rgb/camera_info" />
+    </node>
+
+    <arg name="node_start_delay" default="1.0" />
+    <node name="gazebo_unpauser" pkg="workcell_809e" type="gazebo_unpauser.py" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
+
+    <!-- <arg name="node_manipulation_delay" default="2.0" />
+    <node name="manipulation_809e" pkg="manipulation_809e" type="main" output="screen" /> -->
+
+    <!-- <arg name="node_navigation_delay" default="2.0" />
+    <node name="navigation_809e" pkg="navigation_809e" type="main" output="screen" launch-prefix="bash -c 'sleep $(arg node_navigation_delay); $0 $@' " />
+     -->
+    </launch>

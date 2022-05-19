@@ -1,0 +1,8 @@
+#!/usr/bin/env python
+
+import rospy
+from navigation_809e import navigation_class
+
+
+if __name__ == '__main__':
+    navigation = navigation_class.Navigation()

@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>enpm809e_msgs</name>
+  <version>0.0.0</version>
+  <description>
+    Package for custom messages and services
+  </description>
+
+  <!-- original nist_gear authors -->
+  <author email="zeidk@umd.edu">Zeid Kootbally</author>
+  <maintainer email="zeidk@umd.edu">Zeid Kootbally</maintainer>
+  <license>Apache 2.0</license>
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>
+  <depend>geometry_msgs</depend>
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
+</package>

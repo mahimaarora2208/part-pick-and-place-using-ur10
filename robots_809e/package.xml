@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>robots_809e</name>
+  <version>0.0.0</version>
+  <description>Custom files for the manipulator and mobile robot</description>
+
+  <author>Zeid Kootbally</author>
+  <maintainer email="zeidk@umd.edu">Zeid Kootbally</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <test_depend>roslaunch</test_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <!-- <exec_depend>ur_description</exec_depend> -->
+  <!-- <exec_depend>ur_bringup</exec_depend> -->
+  <exec_depend>robot_state_publisher</exec_depend>
+
+  <export>
+  </export>
+</package>

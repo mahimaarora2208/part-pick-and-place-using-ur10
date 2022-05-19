@@ -78,11 +78,15 @@ class Manipulation(object):
             if self.part_a_info['color'] and self.part_b_info['color']:
                 self.color_of_parts_to_place.append(self.part_a_info['color'])
                 self.color_of_parts_to_place.append(self.part_b_info['color'])
+            rospy.loginfo("colors from kitting {}".format(
+                self.color_of_parts_to_place))
 
             # Stores goal bin location for parts
             if self.part_a_info['bin'] and self.part_b_info['bin']:
                 self.bin_of_parts_to_place.append(self.part_a_info['bin'])
                 self.bin_of_parts_to_place.append(self.part_b_info['bin'])
+            rospy.loginfo("bin from kitting {}".format(
+                self.bin_of_parts_to_place))
 
         # To save part info from camera
         # Camera 1
@@ -99,6 +103,9 @@ class Manipulation(object):
                 self.list_of_parts_cam1 = [cam1_part_a.type]
             else:
                 rospy.loginfo("No part under Camera 1")
+
+        # rospy.loginfo("camera1 assem value {}"
+        #               .format(self.list_of_parts_cam1))
 
         # Camera 2
         msg_camera_2_part_info = rospy.wait_for_message(
@@ -151,12 +158,11 @@ class Manipulation(object):
         # Instantiate camera type to concatenate for frames
         cam_name_1 = ''
         cam_name_2 = ''
-        part_id = ''
+
         # Checks under which camera is the part present and assigns the camera type
         if self.color_of_parts_to_place[0][0] != self.color_of_parts_to_place[1][0]:
             if self.list_of_parts_cam1:
                 if(([s for s in self.list_of_parts_cam1 if self.color_of_parts_to_place[0] in s])):
-
                     cam_name_1 = "logical_camera_1_"
                 if(([s for s in self.list_of_parts_cam1 if self.color_of_parts_to_place[1] in s])):
 
@@ -170,14 +176,17 @@ class Manipulation(object):
 
             self.final = [cam_name_1 + "assembly_pump_"+self.color_of_parts_to_place[0] + "_0_frame",
                           cam_name_2 + "assembly_pump_" + self.color_of_parts_to_place[1] + "_0_frame"]
-        
-            rospy.loginfo("Parts in list from part_info {}".format(self.bin_of_parts_to_place))
+
+            rospy.loginfo(
+                "first if (diff) - final value is {}".format(self.final))
 
         else:
             if self.list_of_parts_cam1:
+                # checks if part is in color list
                 if(([s for s in self.list_of_parts_cam1 if self.color_of_parts_to_place[0] in s])):
                     cam_name_1 = "logical_camera_1_"
-                    if(([s for s in self.bin_of_parts_to_place if ("bin1" or "bin2") in s])):
+                    # if part is in bin 1 or bin 2
+                    if(([s for s in self.bin_of_parts_to_place[0] if ("bin1" or "bin2") in s])):
                         cam_name_2 = "logical_camera_1_"
                     else:
                         cam_name_2 = "logical_camera_2_"
@@ -185,16 +194,16 @@ class Manipulation(object):
             if self.list_of_parts_cam2:
                 if(([s for s in self.list_of_parts_cam2 if self.color_of_parts_to_place[0] in s])):
                     cam_name_1 = "logical_camera_2_"
-                    if(([s for s in self.bin_of_parts_to_place if ("bin1" or "bin2") in s])):
+                    if(([s for s in self.bin_of_parts_to_place[0] if ("bin1" or "bin2") in s])):
                         cam_name_2 = "logical_camera_1_"
                     else:
                         cam_name_2 = "logical_camera_2_"
             self.final = [cam_name_1 + "assembly_pump_" + self.color_of_parts_to_place[0] +
                           "_0_frame", cam_name_2 + "assembly_pump_" + self.color_of_parts_to_place[1] + "_0_frame"]
-            self.final = str(self.final[0])
-        self.final = self.final
-        rospy.loginfo("final_values {}"
-                      .format(self.final))
+
+            rospy.loginfo(
+                "second if (diff) - final value is {}".format(self.final))
+
         k = 0
         while k < 3:
             self.pick_coordinates_a = self.get_transform(
@@ -204,34 +213,19 @@ class Manipulation(object):
         rospy.loginfo("Pick_a {}"
                       .format(self.pick_coordinates_a))
 
-        j = 0
-        while j < 3:
-            self.pick_coordinates_b = self.get_transform(
-                "/world", str(self.final[1]))
-            j += 1
-        rospy.loginfo("Pick _b {}"
-                      .format(self.pick_coordinates_b))
-
         rospy.loginfo("part_a_info(should be red..{}"
                       .format(self.part_a_info))
         self.place_a = self.broadcast_marker(
             self.part_a_info['position_x'],  self.part_a_info['position_y'],  self.part_a_info['position_z'], 0, 0, 0, 1, "part_a", str(self.bin_of_parts_to_place[0]))
         rospy.loginfo("self.place_a{}"
                       .format(self.place_a))
-        
-        rospy.loginfo("part_b_info(should be green..{}"
-                      .format(self.part_b_info))              
-        self.place_b = self.broadcast_marker(
-            self.part_b_info['position_x'], self.part_b_info['position_y'],   self.part_b_info['position_z'], 0, 0, 0, 1, "part_b", str(self.bin_of_parts_to_place[1]))
-        rospy.loginfo("self.place_b{}"
-                      .format(self.place_b))
 
         # pick-and-place
-        if self.pick_coordinates_a and self.pick_coordinates_b and self.place_a and self.place_b:
+        if self.pick_coordinates_a and self.place_a:
             self.pickandplace()
         else:
-            rospy.loginfo("One of the required values is None due to broadcaster issue....Run again")
-
+            rospy.loginfo(
+                "One of the required values is None due to broadcaster issue....Run again")
 
     def get_transform(self, parent_frame, child_frame):
 
@@ -323,13 +317,11 @@ class Manipulation(object):
         """
         rospy.wait_for_service('/ariac/kitting/arm/gripper/control')
         try:
-            rospy.loginfo("INSIDE activate Gripper try:")
             control = rospy.ServiceProxy(
                 '/ariac/kitting/arm/gripper/control', VacuumGripperControl)
             result = control(True)
             return result.success
         except rospy.ServiceException as e:
-            rospy.loginfo("INSIDE activate Gripper except:")
             print("Service call failed: %s" % e)
 
     def deactivate_gripper(self):
@@ -340,7 +332,6 @@ class Manipulation(object):
         """
         rospy.wait_for_service('/ariac/kitting/arm/gripper/control')
         try:
-            rospy.loginfo("INSIDE deactivate Gripper try:")
             control = rospy.ServiceProxy(
                 '/ariac/kitting/arm/gripper/control', VacuumGripperControl)
             result = control(False)
@@ -375,8 +366,8 @@ class Manipulation(object):
         Pick and Place poses for both parts retrieved dynamically
         """
 
-        # Pick and Place part 1 
-        self.count += 1 # count = 1
+        # Pick and Place part 1
+        self.count += 1  # count = 1
         pickup_pose = Pose()
         pickup_pose.position.x = self.pick_coordinates_a[0]
         pickup_pose.position.y = self.pick_coordinates_a[1]
@@ -388,27 +379,42 @@ class Manipulation(object):
         place_pose.position.z = self.place_a[2]
 
         self.move_part(pickup_pose, place_pose)
+        rospy.sleep(2)
 
+        j = 0
+        while j < 3:
+            self.pick_coordinates_b = self.get_transform(
+                "/world", str(self.final[1]))
+            j += 1
+        rospy.loginfo("Pick _b {}"
+                      .format(self.pick_coordinates_b))
 
-        # Pick and Place part 2 
-        self.count += 1 # count = 2
+        rospy.loginfo("part_b_info(should be green..{}"
+                      .format(self.part_b_info))
+        self.place_b = self.broadcast_marker(
+            self.part_b_info['position_x'], self.part_b_info['position_y'],   self.part_b_info['position_z'], 0, 0, 0, 1, "part_b", str(self.bin_of_parts_to_place[1]))
+        rospy.loginfo("self.place_b{}"
+                      .format(self.place_b))
+
+        # Pick and Place part 2
+        self.count += 1  # count = 2
         pickup_pose = Pose()
         pickup_pose.position.x = self.pick_coordinates_b[0]
         pickup_pose.position.y = self.pick_coordinates_b[1]
         pickup_pose.position.z = self.pick_coordinates_b[2]
 
-        rospy.sleep(2)
+        # rospy.sleep(2)
         place_pose = Pose()
         place_pose.position.x = self.place_b[0]
         place_pose.position.y = self.place_b[1]
         place_pose.position.z = self.place_b[2]
-        
+
         self.move_part(pickup_pose, place_pose)
 
-        if count == 2:
+        if self.count == 2:
             rospy.loginfo("Pick and Place Operation Completed..!")
         else:
-            rospy.logerr("Pick and Place not completed...try running again..!") 
+            rospy.logerr("Pick and Place not completed...try running again..!")
 
     def test_arm_base(self):
         """
@@ -457,10 +463,6 @@ class Manipulation(object):
 
         # activate gripper
         self.activate_gripper()
-        rospy.loginfo("current_pose after gripper activation {}".format(
-            self._arm_group.get_current_pose()))
-        rospy.loginfo(
-            "above_pose after gripper activation {}".format(above_part_pose))
         # slowly move down until the part is attached to the gripper
         part_is_attached = self.is_object_attached()
         while not part_is_attached:
@@ -688,11 +690,3 @@ class Manipulation(object):
         location_pose = self._arm_group.get_current_joint_values()
         location_pose[:] = arm
         self._arm_group.go(location_pose, wait=True)
-
-  # self.part_a_in_bin = {'type': cam_part_a.type, 'position_x': None,
-        #                       'position_y': None, 'position_z': None, 'orientation_x': None, 'orientation_y': None, 'orientation_z': None, 'orientation_w': None}
-
-        # rospy.loginfo("PArt A in camera1 {}".format(self.part_a_in_bin))
-
-        # self.part_b_in_bin = {'type': cam_part_b.type, 'position_x': None,
-        #                       'position_y': None, 'position_z': None, 'orientation_x': None, 'orientation_y': None, 'orientation_z': None, 'orientation_w': None}

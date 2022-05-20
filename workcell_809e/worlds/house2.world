@@ -63,7 +63,7 @@
     </model>
     
 
-    <model name="marker_1">
+    <model name="aruco_marker_0">
       <include>
         <static>true</static>
         <uri>model://aruco_marker_0</uri>
@@ -71,28 +71,28 @@
       <pose>-3.645012 4.636835 0.077714 0 0 -2.424063</pose>
     </model>
 
-    <model name="aruco_marker_3">
+    <model name="aruco_marker_2">
       <include>
         <static>true</static>
-        <uri>model://aruco_marker_3</uri>
+        <uri>model://aruco_marker_2</uri>
       </include>
       <pose>-1.375514 4.618280 0.077714 0 0 -0.975077</pose>
     </model>
 
 
-    <model name="assembly_pump_blue_0">
+    <model name="assembly_pump_green_0">
       <include>
         <static>false</static>
-        <uri>model://assembly_pump_blue_ariac</uri>
+        <uri>model://assembly_pump_green_ariac</uri>
       </include>
       <pose>0 0 0.77 0 0 1.57</pose>
     </model>
 
 
-    <model name="assembly_pump_blue_1">
+    <model name="assembly_pump_red_0">
       <include>
         <static>false</static>
-        <uri>model://assembly_pump_blue_ariac</uri>
+        <uri>model://assembly_pump_red_ariac</uri>
       </include>
       <pose>-1 0 0.77 0 0 1.57</pose>
     </model>

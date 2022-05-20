@@ -25,7 +25,7 @@ kits:
   aruco_0: 
     bin: bin3
     part:
-      color: blue
+      color: red
       location: 
         position_x: 0
         position_y: 0

@@ -39,6 +39,7 @@ class Manipulation(object):
         self._tf_listener = tf.TransformListener()
         self.list_of_parts_cam1 = []
         self.list_of_parts_cam2 = []
+        self.concatenated_list_of_parts = []
         self.color_of_parts_to_place = []
         self.bin_of_parts_to_place = []
         self.final = []
@@ -49,6 +50,7 @@ class Manipulation(object):
         self.place_a = []
         self.place_b = []
         self.count = 0
+        self.id_part = None
 
         # kitting_arm
         # - linear_arm_actuator_joint
@@ -158,6 +160,8 @@ class Manipulation(object):
         # Instantiate camera type to concatenate for frames
         cam_name_1 = ''
         cam_name_2 = ''
+        # To get total parts in the workcell
+        self.concatenated_list_of_parts = self.list_of_parts_cam1 + self.list_of_parts_cam2
 
         # Checks under which camera is the part present and assigns the camera type
         if self.color_of_parts_to_place[0][0] != self.color_of_parts_to_place[1][0]:
@@ -177,49 +181,83 @@ class Manipulation(object):
             self.final = [cam_name_1 + "assembly_pump_"+self.color_of_parts_to_place[0] + "_0_frame",
                           cam_name_2 + "assembly_pump_" + self.color_of_parts_to_place[1] + "_0_frame"]
 
-            rospy.loginfo(
-                "first if (diff) - final value is {}".format(self.final))
+        else:  # goes here when both parts are same
+            num = 0
+            for ele in self.concatenated_list_of_parts:
+                a = ele.find(self.color_of_parts_to_place[0])
+                if a == -1:  # if element not found in colors to place list
+                    flag = False
+                else:
+                    num += 1   # count number of same parts
 
-        else:
-            if self.list_of_parts_cam1:
-                # checks if part is in color list
-                if(([s for s in self.list_of_parts_cam1 if self.color_of_parts_to_place[0] in s])):
-                    cam_name_1 = "logical_camera_1_"
-                    # if part is in bin 1 or bin 2
-                    if(([s for s in self.bin_of_parts_to_place[0] if ("bin1" or "bin2") in s])):
-                        cam_name_2 = "logical_camera_1_"
-                    else:
-                        cam_name_2 = "logical_camera_2_"
+            # if one part manipulation is needed (blue -> bin2, same blue -> bin 3)
+            if num == 1:
+                self.id_part = "_0_frame"
+                if self.list_of_parts_cam1:
+                    # checks if part is in color list
+                    if(([s for s in self.list_of_parts_cam1 if self.color_of_parts_to_place[0] in s])):
+                        cam_name_1 = "logical_camera_1_"
+                        # if part is in bin 1 or bin 2
+                        if(([s for s in self.bin_of_parts_to_place[0] if ("bin1" or "bin2") in s])):
+                            cam_name_2 = "logical_camera_1_"
+                        else:
+                            cam_name_2 = "logical_camera_2_"
 
-            if self.list_of_parts_cam2:
-                if(([s for s in self.list_of_parts_cam2 if self.color_of_parts_to_place[0] in s])):
-                    cam_name_1 = "logical_camera_2_"
-                    if(([s for s in self.bin_of_parts_to_place[0] if ("bin1" or "bin2") in s])):
-                        cam_name_2 = "logical_camera_1_"
-                    else:
-                        cam_name_2 = "logical_camera_2_"
-            self.final = [cam_name_1 + "assembly_pump_" + self.color_of_parts_to_place[0] +
-                          "_0_frame", cam_name_2 + "assembly_pump_" + self.color_of_parts_to_place[1] + "_0_frame"]
+                if self.list_of_parts_cam2:
+                    if(([s for s in self.list_of_parts_cam2 if self.color_of_parts_to_place[0] in s])):
+                        cam_name_1 = "logical_camera_2_"
+                        if(([s for s in self.bin_of_parts_to_place[0] if ("bin1" or "bin2") in s])):
+                            cam_name_2 = "logical_camera_1_"
+                        else:
+                            cam_name_2 = "logical_camera_2_"
 
-            rospy.loginfo(
-                "second if (diff) - final value is {}".format(self.final))
+            # when two parts of same color are present. This checks for their locations
+            else:
+                if self.list_of_parts_cam1:
+                    if(([s for s in self.list_of_parts_cam1 if self.color_of_parts_to_place[0] in s])):
+                        cam_name_1 = "logical_camera_1_"
+                        num = 0
+                        for ele in self.list_of_parts_cam1:
+                            a = ele.find(self.color_of_parts_to_place[0])
+                            if a == -1:
+                                flag = False
+                            else:
+                                num += 1
+
+                        if num == 1:
+                            cam_name_2 = "logical_camera_2_"
+
+                        else:
+                            cam_name_2 = "logical_camera_1_"  # TO-DO TEST WITH DIFF VALUES
+
+                if self.list_of_parts_cam2:
+                    if(([s for s in self.list_of_parts_cam2 if self.color_of_parts_to_place[0] in s])):
+                        cam_name_1 = "logical_camera_2_"
+                        num = 0
+                        for ele in self.list_of_parts_cam1:
+                            a = ele.find(self.color_of_parts_to_place[0])
+                            if a == -1:
+                                flag = False
+                            else:
+                                num += 1
+
+                        if num == 1:
+                            cam_name_2 = "logical_camera_2_"
+                        else:
+                            cam_name_2 = "logical_camera_1_"
+                self.id_part = "_1_frame"
+
+            self.final = [cam_name_1 + "assembly_pump_"+self.color_of_parts_to_place[0] + "_0_frame",
+                          cam_name_2 + "assembly_pump_" + self.color_of_parts_to_place[1] + self.id_part]
 
         k = 0
         while k < 3:
             self.pick_coordinates_a = self.get_transform(
                 "/world", str(self.final[0]))
-
             k += 1
-        rospy.loginfo("Pick_a {}"
-                      .format(self.pick_coordinates_a))
 
-        rospy.loginfo("part_a_info(should be red..{}"
-                      .format(self.part_a_info))
         self.place_a = self.broadcast_marker(
             self.part_a_info['position_x'],  self.part_a_info['position_y'],  self.part_a_info['position_z'], 0, 0, 0, 1, "part_a", str(self.bin_of_parts_to_place[0]))
-        rospy.loginfo("self.place_a{}"
-                      .format(self.place_a))
-
         # pick-and-place
         if self.pick_coordinates_a and self.place_a:
             self.pickandplace()
@@ -237,12 +275,7 @@ class Manipulation(object):
                                                )
             (trans, rot) = self._tf_listener.lookupTransform(
                 parent_frame, child_frame, now)
-
-            # rospy.loginfo("Pose for [{},{}]"
-            #             .format(trans,rot))
-
             pick_coordinates = trans
-
             return pick_coordinates
 
         except (tf.Exception, tf.ConnectivityException, tf.LookupException):
@@ -265,6 +298,9 @@ class Manipulation(object):
                 j += 1
             # rospy.sleep(0.1)
             k += 1
+
+        rospy.loginfo("insideeeeeee valuee {}".format(
+            place_coordinates_from_broadcaster))
         return place_coordinates_from_broadcaster
 
     def reach_goal(self):
@@ -365,7 +401,8 @@ class Manipulation(object):
         """
         Pick and Place poses for both parts retrieved dynamically
         """
-
+        rospy.loginfo("Pick A location {}".format(self.pick_coordinates_a))
+        rospy.loginfo("Place A location {}".format(self.place_a))
         # Pick and Place part 1
         self.count += 1  # count = 1
         pickup_pose = Pose()
@@ -379,37 +416,38 @@ class Manipulation(object):
         place_pose.position.z = self.place_a[2]
 
         self.move_part(pickup_pose, place_pose)
-        rospy.sleep(2)
+        rospy.sleep(0.1)
 
+        rospy.loginfo("Final list is {}".format(
+            self.final))
         j = 0
         while j < 3:
             self.pick_coordinates_b = self.get_transform(
                 "/world", str(self.final[1]))
             j += 1
-        rospy.loginfo("Pick _b {}"
-                      .format(self.pick_coordinates_b))
 
-        rospy.loginfo("part_b_info(should be green..{}"
-                      .format(self.part_b_info))
         self.place_b = self.broadcast_marker(
-            self.part_b_info['position_x'], self.part_b_info['position_y'],   self.part_b_info['position_z'], 0, 0, 0, 1, "part_b", str(self.bin_of_parts_to_place[1]))
-        rospy.loginfo("self.place_b{}"
-                      .format(self.place_b))
+            self.part_b_info['position_x'], self.part_b_info['position_y'],  self.part_b_info['position_z'], 0, 0, 0, 1, "part_b", str(self.bin_of_parts_to_place[1]))
 
-        # Pick and Place part 2
-        self.count += 1  # count = 2
-        pickup_pose = Pose()
-        pickup_pose.position.x = self.pick_coordinates_b[0]
-        pickup_pose.position.y = self.pick_coordinates_b[1]
-        pickup_pose.position.z = self.pick_coordinates_b[2]
+        rospy.loginfo("Pick B location {}".format(self.pick_coordinates_b))
+        rospy.loginfo("Place B location {}".format(
+            self.place_b))
 
-        # rospy.sleep(2)
-        place_pose = Pose()
-        place_pose.position.x = self.place_b[0]
-        place_pose.position.y = self.place_b[1]
-        place_pose.position.z = self.place_b[2]
+        if self.pick_coordinates_b and self.place_b:
+            # Pick and Place part 2
+            self.count += 1  # count = 2
+            pickup_pose = Pose()
+            pickup_pose.position.x = self.pick_coordinates_b[0]
+            pickup_pose.position.y = self.pick_coordinates_b[1]
+            pickup_pose.position.z = self.pick_coordinates_b[2]
 
-        self.move_part(pickup_pose, place_pose)
+            # rospy.sleep(2)
+            place_pose = Pose()
+            place_pose.position.x = self.place_b[0]
+            place_pose.position.y = self.place_b[1]
+            place_pose.position.z = self.place_b[2]
+
+            self.move_part(pickup_pose, place_pose)
 
         if self.count == 2:
             rospy.loginfo("Pick and Place Operation Completed..!")

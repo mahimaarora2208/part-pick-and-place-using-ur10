@@ -1,1 +1,47 @@
 Place instructions on how to run your Nodes.
+
+****************************************************************************
+
+- Place the package in the src folder of the enpm809e_ws or your catkin_ws.
+
+Edit your .bashrc and add:
+
+------> export GAZEBO_MODEL_PATH=/absolute/path/to/pickandplace_spring2022/workcell_809e/models:$GAZEBO_MODEL_PATH
+
+RUN THE FOLLOWING COMMANDS ON YOUR TERMINAL
+
+1) cd ~/enpm809e_ws/src
+2) source ~/.bashrc
+3) cd ~/enpm809e_ws/src/pickandplace_spring2022
+4) rosdep install --from-paths . --ignore-src --rosdistro noetic -y
+5) catkin build
+6) source ~/.bashrc
+7) cd
+
+(A) COMMAND TO LAUNCH THE ENVRIONMENT IN GAZEBO AND RVIZ
+------> roslaunch workcell_809e workcell.launch
+
+NOTE: Sometimes the manipulator falls down when the environment is launched. To solve the issue, either source the package and run the launch file again OR 
+manually move the manipulator slightly in the Z direction using moveit. If the manipulator is not in the correct start position, it will not be able to 
+go to the pick location and the program will terminate.
+
+(B) COMMAND TO RUN THE NAVIGATION NODE
+Open a separate terminal and run :
+
+------> rosrun navigation_809e main
+
+NOTE: Sometimes the navigation node does not start the Action server. To solve the issue,source the package and run the navigation node 
+again(no need to terminate the launch file on the other terminal). If the navigation node has not started, the manipulator node will not start since 
+no information will be published on th part_info topic.
+
+(C) COMMAND TO RUN THE MANIPULATION NODE
+Open a separate terminal and run :
+------> rosrun manipulation_809e main
+
+NOTE: If the manipulation node fails for some reason, it should be probably because of a TF exception as it might be facing an issue to get either the pick and 
+place value of first part or the second. In this case, run again the manipulation node(if the position of manipulator has not changed) or eles, run (A), (B) and (C)
+again.
+
+SOURCE THE PACKAGE IF YOU ARE NOT ABLE TO FIND THE (B) AND (C) COMMANDS IN TERMINAL WHEN YOU PRESS TAB.
+
+*********************************************************************************
